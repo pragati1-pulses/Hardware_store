@@ -12,10 +12,9 @@ app.use(express.json());
 // Set up PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
 });
 
-// Test route to check server AND database connection
+// 1. Test route
 app.get('/api/health', async (req, res) => {
     try {
         const result = await pool.query('SELECT NOW()');
@@ -25,7 +24,40 @@ app.get('/api/health', async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Database connection failed. Check your .env file." });
+        res.status(500).json({ error: "Database connection failed." });
+    }
+});
+
+// ==========================================
+// INVENTORY ROUTES
+// ==========================================
+
+// GET: Fetch all inventory items
+app.get('/api/inventory', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM inventory ORDER BY id ASC');
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch inventory" });
+    }
+});
+
+// POST: Add a new inventory item
+app.post('/api/inventory', async (req, res) => {
+    try {
+        const { item_id, name, unit, cost_price, selling_price, stock_level } = req.body;
+        
+        const newItem = await pool.query(
+            `INSERT INTO inventory (item_id, name, unit, cost_price, selling_price, stock_level) 
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [item_id, name, unit, cost_price, selling_price, stock_level]
+        );
+        
+        res.status(201).json(newItem.rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to add inventory item. Item ID might already exist." });
     }
 });
 
