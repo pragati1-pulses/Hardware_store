@@ -10,10 +10,31 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "bin": "server.js",
+  "pkg": {
+    "scripts": [
+      "models/**/*.js",
+      "routes/**/*.js",
+      "controllers/**/*.js",
+      "config/**/*.js",
+      "scripts/**/*.js",
+      "../node_modules/sqlite3/**/*.js"
+    ],
+    "assets": [
+      "Data/**/*",
+      "public/**/*",
+      "../node_modules/sqlite3/**/*.node"
+    ]
+  },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
-    "pg": "^8.23.1"
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
+    "nodemailer": "^10.3.1",
+    "pg": "^8.23.1",
+    "sqlite3": "^6.0.1"
   }
 }

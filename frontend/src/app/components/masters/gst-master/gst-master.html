@@ -1,0 +1,122 @@
+<div class="h-[calc(100vh-80px)] flex flex-col p-6 max-w-7xl mx-auto w-full">
+  
+  <!-- Header -->
+  <div class="mb-6 shrink-0">
+    <h1 class="text-2xl font-bold text-gray-800">GST & HSN Master</h1>
+    <p class="text-gray-500 text-sm mt-1">Manage tax rates and HSN codes for your products.</p>
+  </div>
+
+  <!-- Success/Error Message -->
+  @if (message) {
+    <div class="px-4 py-3 rounded-xl mb-6 shadow-sm border flex items-center shrink-0"
+         [ngClass]="isError ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'">
+      {{ message }}
+    </div>
+  }
+
+  <!-- Inline Form Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6 shrink-0">
+    <div class="h-1.5 w-full" [ngClass]="editingId ? 'bg-orange-500' : 'bg-purple-500'"></div>
+    
+    <div class="p-6">
+      <div class="flex flex-col md:flex-row gap-4 items-end">
+        
+        <div class="flex-1 w-full">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Tax Name <span class="text-red-500">*</span></label>
+          <input type="text" [(ngModel)]="newGst.tax_name" placeholder="e.g. GST 18%" 
+                 class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50/50 focus:bg-white">
+        </div>
+        
+        <div class="flex-1 w-full">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Tax Rate (%) <span class="text-red-500">*</span></label>
+          <input type="number" [(ngModel)]="newGst.tax_rate" placeholder="e.g. 18" 
+                 class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50/50 focus:bg-white">
+        </div>
+
+        <div class="flex-1 w-full">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">HSN / SAC Code</label>
+          <input type="text" [(ngModel)]="newGst.hsn_code" placeholder="e.g. 2523" 
+                 class="w-full border border-gray-300 p-3 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none bg-gray-50/50 focus:bg-white">
+        </div>
+        
+        <div class="flex gap-2 w-full md:w-auto">
+          <button (click)="saveGst()" 
+                  class="text-white px-6 py-3 rounded-xl shadow-lg transition-all hover:-translate-y-0.5 flex items-center justify-center font-medium w-full md:w-auto"
+                  [ngClass]="editingId ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-500/30' : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/30'">
+            {{ editingId ? 'Update Tax' : 'Add Tax' }}
+          </button>
+          
+          @if (editingId) {
+            <button (click)="resetForm()" class="bg-gray-100 border border-gray-200 text-gray-700 px-5 py-3 rounded-xl hover:bg-gray-200 transition-colors font-medium">
+              Cancel
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col flex-1 min-h-0 overflow-hidden">
+    
+    <div class="overflow-auto flex-1">
+      <table class="w-full text-left border-collapse">
+        <thead class="sticky top-0 bg-gray-50 text-gray-600 z-10 shadow-sm border-b border-gray-200">
+          <tr class="text-xs uppercase tracking-wider font-semibold">
+            <th class="p-4 bg-gray-50 w-16">ID</th>
+            <th class="p-4 bg-gray-50">Tax Name</th>
+            <th class="p-4 bg-gray-50 text-right">Tax Rate (%)</th>
+            <th class="p-4 bg-gray-50">HSN Code</th>
+            <th class="p-4 bg-gray-50 text-center w-24">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (gst of paginatedGst; track gst.id) {
+            <tr class="border-b border-gray-100 hover:bg-purple-50/30 even:bg-gray-50/50 transition-colors">
+              <td class="p-4 text-gray-400 font-mono text-sm">#{{ gst.id }}</td>
+              <td class="p-4 font-medium text-gray-800">{{ gst.tax_name }}</td>
+              <td class="p-4 text-right">
+                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold border border-purple-200">
+                  {{ gst.tax_rate }}%
+                </span>
+              </td>
+              <td class="p-4 text-gray-600 text-sm font-mono">{{ gst.hsn_code || '-' }}</td>
+              <td class="p-4">
+                <div class="flex justify-center gap-2">
+                  <button (click)="editGst(gst)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg shadow-sm bg-white border border-gray-200 transition-colors" title="Edit">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                  </button>
+                  <button (click)="deleteGst(gst.id)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg shadow-sm bg-white border border-gray-200 transition-colors" title="Delete">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="p-8 text-center text-gray-500">No tax rates found. Add one above.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (gstList.length > 0) {
+      <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
+        <span class="text-sm text-gray-600 font-medium">
+          Showing <span class="text-purple-600 font-bold">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
+          <span class="text-purple-600 font-bold">{{ currentPage * pageSize > gstList.length ? gstList.length : currentPage * pageSize }}</span> of 
+          <span class="text-purple-600 font-bold">{{ gstList.length }}</span> tax rates
+        </span>
+        <div class="flex items-center space-x-1">
+          <button (click)="prevPage()" [disabled]="currentPage === 1" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-white bg-gray-100 disabled:opacity-50 transition-colors shadow-sm">Previous</button>
+          @for (p of pages; track p) {
+            <button (click)="setPage(p)" class="px-4 py-2 border rounded-lg text-sm font-medium transition-all shadow-sm" [ngClass]="currentPage === p ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'text-gray-700 border-gray-300 hover:bg-white bg-gray-100'">{{ p }}</button>
+          }
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-white bg-gray-100 disabled:opacity-50 transition-colors shadow-sm">Next</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

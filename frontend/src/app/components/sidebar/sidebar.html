@@ -1,0 +1,92 @@
+<div class="w-64 bg-[#0f172a] text-gray-300 flex flex-col h-screen fixed left-0 top-0 border-r border-gray-800 z-50">
+    
+    <!-- Logo Area -->
+    <div class="h-20 flex items-center px-6 border-b border-gray-800">
+        <div class="bg-red-500 text-white p-2 rounded-lg mr-3 shadow-lg shadow-red-500/30">
+         <img [src]="settings.logo_url" alt="Logo" class="h-6 w-6 object-contain" />
+        </div>
+        <div>
+            <h1 class="text-white font-bold text-xl tracking-wide">{{ settings.company_name }}</h1>
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest">Hardware systems</p>
+        </div>
+    </div>
+
+    <!-- Workspace Info -->
+    <div class="px-6 py-5 border-b border-gray-800">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Workspace</p>
+        <p class="text-white font-medium text-sm">{{ settings.workspace_name }}</p>
+        <div class="flex items-center mt-2 text-xs text-green-400 font-medium">
+            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+            Offline mode
+        </div>
+    </div>
+
+    <!-- Dynamic Navigation Links -->
+    <nav class="flex-1 overflow-y-auto py-4 custom-scrollbar">
+        <ul class="space-y-1 px-3">
+            
+            <!-- LOOP USING FILTERED ITEMS -->
+            @for (item of filteredMenuItems; track item.label) {
+                <li>
+                    <!-- IF ITEM HAS CHILDREN (Parent Menu) -->
+                    @if (item.children) {
+                        <button (click)="toggleMenu(item)" 
+                                class="w-full flex items-center justify-between px-3 py-3 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-md transition-all cursor-pointer group">
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 mr-3 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                                </svg>
+                                {{ item.label }}
+                            </div>
+                            <!-- Chevron Icon -->
+                            <svg class="h-4 w-4 transition-transform duration-200" [class.rotate-180]="item.isExpanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Submenu Items -->
+                        @if (item.isExpanded) {
+                            <ul class="mt-1 space-y-1 pl-10 pr-2">
+                                @for (child of item.children; track child.label) {
+                                    <li>
+                                        <a [routerLink]="child.path" 
+                                           routerLinkActive="text-white bg-gray-800/50" 
+                                           class="flex items-center px-3 py-2 text-sm text-gray-400 hover:text-white rounded-md transition-all cursor-pointer">
+                                            <!-- Submenu dot/icon -->
+                                            <span class="w-1.5 h-1.5 rounded-full bg-gray-600 mr-3"></span>
+                                            {{ child.label }}
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    } 
+                    
+                    <!-- IF ITEM HAS NO CHILDREN (Standard Link) -->
+                    @else {
+                        <a [routerLink]="item.path" 
+                           routerLinkActive="bg-gray-800 text-white border-r-4 border-red-500" 
+                           class="flex items-center px-3 py-3 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-md transition-all cursor-pointer group">
+                            <svg class="h-5 w-5 mr-3 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                            </svg>
+                            {{ item.label }}
+                        </a>
+                    }
+                </li>
+            }
+
+        </ul>
+    </nav>
+
+    <!-- User Profile Footer -->
+    <div class="p-4 border-t border-gray-800 flex items-center bg-[#0b1120]">
+        <div class="h-10 w-10 rounded-full bg-yellow-500 flex items-center justify-center text-white font-bold mr-3 shadow-md">
+            {{ settings.owner_name.charAt(0) }}
+        </div>
+        <div>
+            <p class="text-white text-sm font-medium">{{ settings.owner_name }}</p>
+            <p class="text-xs text-gray-500">Store owner</p>
+        </div>
+    </div>
+</div>
