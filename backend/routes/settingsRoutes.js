@@ -27,4 +27,5 @@ router.post('/upload-logo', upload.single('logo'), (req, res) => {
     res.json({ logo_url: fileUrl });
 });
 
+router.post('/user-permissions', settingsController.updateUserPermissions);
 module.exports = router;

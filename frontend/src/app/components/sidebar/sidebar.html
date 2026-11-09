@@ -29,7 +29,8 @@
             @for (item of filteredMenuItems; track item.label) {
                 <li>
                     <!-- IF ITEM HAS CHILDREN (Parent Menu) -->
-                    @if (item.children) {
+                    <!-- 👇 Added check to ensure it has at least 1 child to show the dropdown arrow -->
+                    @if (item.children && item.children.length > 0) {
                         <button (click)="toggleMenu(item)" 
                                 class="w-full flex items-center justify-between px-3 py-3 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-md transition-all cursor-pointer group">
                             <div class="flex items-center">
@@ -38,14 +39,14 @@
                                 </svg>
                                 {{ item.label }}
                             </div>
-                            <!-- Chevron Icon -->
-                            <svg class="h-4 w-4 transition-transform duration-200" [class.rotate-180]="item.isExpanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <!-- Chevron Icon: 👇 Now checks the expandedMenus Set -->
+                            <svg class="h-4 w-4 transition-transform duration-200" [class.rotate-180]="expandedMenus.has(item.label)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
 
-                        <!-- Submenu Items -->
-                        @if (item.isExpanded) {
+                        <!-- Submenu Items: 👇 Now checks the expandedMenus Set -->
+                        @if (expandedMenus.has(item.label)) {
                             <ul class="mt-1 space-y-1 pl-10 pr-2">
                                 @for (child of item.children; track child.label) {
                                     <li>

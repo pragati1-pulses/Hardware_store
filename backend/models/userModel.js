@@ -11,7 +11,21 @@ const User = sequelize.define('User', {
         type: DataTypes.ENUM('super_admin', 'admin', 'staff'), 
         allowNull: false,
         defaultValue: 'staff'
+    }, 
+
+
+ created_by: { 
+        type: DataTypes.INTEGER, 
+        allowNull: true 
     },
+
+
+ enabled_modules: { 
+        type: DataTypes.JSON, 
+        allowNull: true, 
+        defaultValue: [] 
+    },
+
 
      // NEW FIELDS
     reset_password_token: { type: DataTypes.STRING, allowNull: true },
