@@ -69,7 +69,7 @@ app.get('/api/health', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 // 👇 Changed { alter: true } to just sync() for pendrive safety
-sequelize.sync().then(async () => {  // <-- Notice the 'async' added here
+sequelize.sync({ alter: true }).then(async () => { // <-- Notice the 'async' added here
     console.log('✅ Database connected and models synced.'); 
 
     // 👇 RUN THE SEEDER HERE BEFORE STARTING THE SERVER

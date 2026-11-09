@@ -8,11 +8,17 @@ const { Op } = require('sequelize');
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_hardware_key';
 
 // 1. Register a new user
+// 1. Register
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
         
-        // Hash the password (add random characters to it so it's unreadable)
+        // 🔒 SECURITY: If an Admin is creating a user, force the role to 'staff'
+        let finalRole = role;
+        if (req.user && req.user.role !== 'super_admin') {
+            finalRole = 'staff'; 
+        }
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         
@@ -20,10 +26,11 @@ exports.register = async (req, res) => {
             name, 
             email, 
             password: hashedPassword, 
-            role 
+            role: finalRole,
+            created_by: req.user ? req.user.id : null // 👈 Save who created this user
         });
         
-        res.status(201).json({ message: "User created successfully", user: { id: newUser.id, name, email, role } });
+        res.status(201).json({ message: "User created successfully", user: { id: newUser.id, name, email, role: finalRole } });
     } catch (error) {
         console.error(error);
         if (error.name === 'SequelizeUniqueConstraintError') {
@@ -33,30 +40,36 @@ exports.register = async (req, res) => {
     }
 };
 
+
+
 // 2. Login
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
         
-        // Find user by email
         const user = await User.findOne({ where: { email } });
         if (!user) {
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        // Check if the typed password matches the hashed password in DB
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        // Generate a token (like a VIP pass) that lasts for 1 day
         const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
 
         res.json({ 
             message: "Login successful", 
             token, 
-            user: { id: user.id, name: user.name, role: user.role, email: user.email } 
+            user: { 
+                id: user.id, 
+                name: user.name, 
+                role: user.role, 
+                email: user.email,
+                // 👇 🚀 ADD THIS LINE HERE 👇
+                enabled_modules: user.enabled_modules || [] 
+            } 
         });
     } catch (error) {
         console.error(error);
@@ -65,17 +78,30 @@ exports.login = async (req, res) => {
 };
 
 // 3. Get all users (For the User Management page)
+// 2. Get all users
 exports.getAllUsers = async (req, res) => {
     try {
+        let whereClause = {};
+
+        // 🔒 If logged in as 'admin', ONLY show staff they created
+        if (req.user && req.user.role === 'admin') {
+            whereClause = { 
+                created_by: req.user.id,
+                role: 'staff' 
+            };
+        } 
+
         const users = await User.findAll({
-            attributes: { exclude: ['password'] }, // Hide passwords
+            where: whereClause,
+            attributes: { exclude: ['password'] }, 
             order: [['id', 'DESC']]
         });
         res.json(users);
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch users" });
     }
-};   
+};
+
 
 
 
@@ -150,5 +176,54 @@ exports.resetPassword = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Failed to reset password" });
+    }
+};  
+
+
+
+// 6. UPDATE USER (Admin/Sir editing a user)
+exports.updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, password } = req.body;
+
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Update basic fields
+        user.name = name || user.name;
+        user.email = email || user.email;
+
+        // Only update password if a new one was typed
+        if (password && password.trim() !== '') {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt);
+        }
+
+        await user.save();
+        res.json({ message: "User updated successfully", user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update user" });
+    }
+};
+
+// 7. DELETE USER
+exports.deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        await user.destroy();
+        res.json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete user" });
     }
 };
